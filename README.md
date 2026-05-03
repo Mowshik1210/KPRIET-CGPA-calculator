@@ -2,9 +2,11 @@
 
 A modern, futuristic 3D CGPA Calculator built using HTML, CSS, JavaScript, and Three.js.
 Designed with a clean UI, theme switching, and professional PDF report generation.
+
 ---
 
-🚀 Live Demo
+## 🚀 Live Demo
+https://mowshik1210.github.io/KPRIET-CGPA-calculator/
 
 👉https://github.com/Mowshik1210
 (GitHub Pages)
@@ -14,21 +16,14 @@ Designed with a clean UI, theme switching, and professional PDF report generatio
 ✨ Features
 
 - 🎨 Light & Dark Theme Toggle
-![Home](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(21).png?raw=true)
-![Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(23).png?raw=true)
 - 🧮 Accurate CGPA Calculation
-![Course Registry](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(24).png?raw=true)
 - 📚 Dynamic Course Management
 - 📊 Result Summary (CGPA, Credits, Courses)
-![CGPA Results](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(26).png?raw=true)
-![Results in Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(27).png?raw=true)
 - 📄 Professional PDF Report Download
-![PDF](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(30).png?raw=true)
 - 🌌 3D Animated Background (Three.js)
-![3d Background](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(29).png?raw=true)
 - ⚡ Fast & Responsive Design
 - 💡 Clean and Modern UI
-![Creater Info](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(28).png?raw=true)
+
 
 
 ---
@@ -38,6 +33,8 @@ Designed with a clean UI, theme switching, and professional PDF report generatio
 CGPA is calculated using:
 
 CGPA = Σ (Credit × Grade Point) / Σ (Credits)
+
+----
 
 📊 Grade Points
 
@@ -75,6 +72,7 @@ kpriet-cgpa-calculator/
 
 📄 PDF Report Includes
 
+
 - Project Title & Logo
 - Student Name
 - Course Details:
@@ -87,7 +85,18 @@ kpriet-cgpa-calculator/
 ---
 ## 📸 Screenshots
 
+
+![Home](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(21).png?raw=true)
+![Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(23).png?raw=true)
 ![Light Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(25).png?raw=true)
+![Course Registry](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(24).png?raw=true)
+![CGPA Results](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(26).png?raw=true)
+![Results in Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(27).png?raw=true)
+![3d Background](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(29).png?raw=true)
+![PDF](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(30).png?raw=true)
+![Creater Info](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(28).png?raw=true)
+
+----
 
 👤 Author
 
