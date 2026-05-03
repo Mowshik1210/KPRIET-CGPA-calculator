@@ -14,13 +14,22 @@ Designed with a clean UI, theme switching, and professional PDF report generatio
 ✨ Features
 
 - 🎨 Light & Dark Theme Toggle
+![Home](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(21).png?raw=true)
+![Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(23).png?raw=true)
 - 🧮 Accurate CGPA Calculation
+![Course Registry](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(24).png?raw=true)
 - 📚 Dynamic Course Management
 - 📊 Result Summary (CGPA, Credits, Courses)
+![CGPA Results](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(26).png?raw=true)
+![Results in Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(27).png?raw=true)
 - 📄 Professional PDF Report Download
+![PDF](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(30).png?raw=true)
 - 🌌 3D Animated Background (Three.js)
+![3d Background](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(29).png?raw=true)
 - ⚡ Fast & Responsive Design
 - 💡 Clean and Modern UI
+![Creater Info](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(28).png?raw=true)
+
 
 ---
 
@@ -76,6 +85,9 @@ kpriet-cgpa-calculator/
 - Total Credits
 
 ---
+## 📸 Screenshots
+
+![Light Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(25).png?raw=true)
 
 👤 Author
 
