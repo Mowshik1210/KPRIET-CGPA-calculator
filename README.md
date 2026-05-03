@@ -6,8 +6,8 @@ Designed with a clean UI, theme switching, and professional PDF report generatio
 
 🚀 Live Demo
 
-👉 Add your live link here (GitHub Pages)
-Example: https://yourusername.github.io/kpriet-cgpa-calculator/
+👉https://github.com/Mowshik1210
+(GitHub Pages)
 
 ---
 
@@ -61,36 +61,6 @@ kpriet-cgpa-calculator/
 ├── style.css
 ├── script.js
 └── README.md
-
----
-
-⚙️ How to Run Locally
-
-1. Clone the repository:
-
-git clone https://github.com/yourusername/kpriet-cgpa-calculator.git
-
-2. Open the folder in VS Code
-
-3. Run using Live Server:
-
-- Right-click "index.html"
-- Click Open with Live Server
-
----
-
-🌐 Deployment (GitHub Pages)
-
-1. Go to repository → Settings
-2. Open Pages
-3. Select:
-   - Branch: "main"
-   - Folder: "/root"
-4. Save
-
-Your site will be live at:
-
-https://yourusername.github.io/kpriet-cgpa-calculator/
 
 ---
 
