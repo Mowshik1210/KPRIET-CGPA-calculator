@@ -29,700 +29,690 @@
   const cols  = new Float32Array(COUNT * 3);
   const vel   = [];
 
-  for (let i = 0; i < COUNT; i++) {
-    const i3 = i * 3;
-    pos[i3]   = (Math.random() - 0.5) * 180;
-    pos[i3+1] = (Math.random() - 0.5) * 110;
-    pos[i3+2] = (Math.random() - 0.5) * 50;
-    vel.push({ x: (Math.random()-0.5)*0.03, y: (Math.random()-0.5)*0.022 });
+  for (let i = 0; i < COUNT * 3; i += 3) {
+    pos[i]     = (Math.random() - 0.5) * 130;
+    pos[i + 1] = (Math.random() - 0.5) * 130;
+    pos[i + 2] = (Math.random() - 0.5) * 100;
 
-    // KPRIET brand colours: green / blue / mid
-    const t = Math.random();
-    if (t < 0.45) { cols[i3]=0.18; cols[i3+1]=0.55; cols[i3+2]=0.30; }       // green
-    else if (t < 0.78) { cols[i3]=0.16; cols[i3+1]=0.37; cols[i3+2]=0.67; }  // blue
-    else { cols[i3]=0.22; cols[i3+1]=0.70; cols[i3+2]=0.55; }                 // teal
+    cols[i]     = 0.176; // #2d8b4e green
+    cols[i + 1] = 0.545;
+    cols[i + 2] = 0.306;
+    
+    vel.push({
+      x: (Math.random() - 0.5) * 0.08,
+      y: (Math.random() - 0.5) * 0.08,
+      z: (Math.random() - 0.5) * 0.05
+    });
   }
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('color',    new THREE.BufferAttribute(cols, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
 
-  const mat = new THREE.PointsMaterial({
-    size: 0.85, vertexColors: true, transparent: true, opacity: 0.5,
-    sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  // Round soft particle representation
+  const pMat = new THREE.PointsMaterial({
+    size: 2.2,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
   });
 
-  const particles = new THREE.Points(geo, mat);
-  scene.add(particles);
+  const pSystem = new THREE.Points(geo, pMat);
+  scene.add(pSystem);
 
-  /* ── Floating wireframe octahedra (brand colours) ── */
-  const shapes = [];
-  const octGeo  = new THREE.OctahedronGeometry(3.5, 0);
-  const shapeColors = [0x2d8b4e, 0x2a5fac, 0x27a04e, 0x1e4f9a, 0x3db366];
+  /* Interaction points */
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX - window.innerWidth / 2) * 0.015;
+    mouseY = (e.clientY - window.innerHeight / 2) * 0.015;
+  });
 
-  for (let i = 0; i < 5; i++) {
-    const m = new THREE.MeshBasicMaterial({
-      color: shapeColors[i % shapeColors.length],
-      wireframe: true, transparent: true,
-      opacity: 0.06 + Math.random() * 0.06,
-    });
-    const mesh = new THREE.Mesh(octGeo, m);
-    const s = 1.4 + Math.random() * 2.8;
-    mesh.scale.set(s, s, s);
-    mesh.position.set(
-      (Math.random()-0.5)*110, (Math.random()-0.5)*65, (Math.random()-0.5)*28 - 15
-    );
-    mesh.userData = {
-      rx: (Math.random()-0.5)*0.007, ry: (Math.random()-0.5)*0.005,
-      fSpeed: 0.35 + Math.random()*0.35, fAmp: 2.5 + Math.random()*3,
-      fOff: Math.random()*Math.PI*2, baseY: mesh.position.y,
-    };
-    scene.add(mesh);
-    shapes.push(mesh);
+  /* Animation tick loop */
+  function tick() {
+    requestAnimationFrame(tick);
+    
+    const pArr = geo.attributes.position.array;
+    for (let i = 0; i < COUNT; i++) {
+      const idx = i * 3;
+      pArr[idx]     += vel[i].x;
+      pArr[idx + 1] += vel[i].y;
+      pArr[idx + 2] += vel[i].z;
+
+      // Boundaries wrap around
+      if (Math.abs(pArr[idx]) > 75)  pArr[idx] *= -0.95;
+      if (Math.abs(pArr[idx + 1]) > 75) pArr[idx + 1] *= -0.95;
+      if (Math.abs(pArr[idx + 2]) > 60) pArr[idx + 2] *= -0.95;
+    }
+    geo.attributes.position.needsUpdate = true;
+
+    // Camera follow ease
+    camera.position.x += (mouseX - camera.position.x) * 0.05;
+    camera.position.y += (-mouseY - camera.position.y) * 0.05;
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
   }
+  tick();
 
-  /* ── Subtle grid ── */
-  const grid = new THREE.GridHelper(180, 22, 0x2d8b4e, 0x0a1a10);
-  grid.position.y = -42;
-  grid.material.transparent = true;
-  grid.material.opacity = 0.1;
-  scene.add(grid);
-
-  /* ── Mouse parallax ── */
-  let mx = 0, my = 0;
-  document.addEventListener('mousemove', e => {
-    mx = (e.clientX/window.innerWidth  - 0.5) * 0.45;
-    my = (e.clientY/window.innerHeight - 0.5) * 0.3;
-  }, { passive: true });
-
-  /* ── Resize ── */
+  /* Window resize scaling handler */
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-  }, { passive: true });
-
-  /* ── Animation loop ── */
-  let raf;
-  const clock = new THREE.Clock();
-
-  function animate() {
-    raf = requestAnimationFrame(animate);
-    const t = clock.getElapsedTime();
-
-    // Drift particles
-    const arr = geo.attributes.position.array;
-    for (let i = 0; i < COUNT; i++) {
-      const i3 = i * 3;
-      arr[i3]   += vel[i].x;
-      arr[i3+1] += vel[i].y;
-      if (arr[i3]   >  90)  arr[i3]   = -90;
-      if (arr[i3]   < -90)  arr[i3]   =  90;
-      if (arr[i3+1] >  55)  arr[i3+1] = -55;
-      if (arr[i3+1] < -55)  arr[i3+1] =  55;
-    }
-    geo.attributes.position.needsUpdate = true;
-    particles.rotation.y = t * 0.01;
-
-    // Float shapes
-    for (const s of shapes) {
-      s.rotation.x += s.userData.rx;
-      s.rotation.y += s.userData.ry;
-      s.position.y = s.userData.baseY +
-        Math.sin(t * s.userData.fSpeed + s.userData.fOff) * s.userData.fAmp;
-    }
-
-    // Camera parallax
-    camera.position.x += (mx * 10 - camera.position.x) * 0.04;
-    camera.position.y += (-my * 7  - camera.position.y) * 0.04;
-    camera.lookAt(scene.position);
-
-    // Grid scroll
-    grid.position.z = -((t * 1.8) % 9);
-
-    renderer.render(scene, camera);
-  }
-
-  animate();
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) cancelAnimationFrame(raf);
-    else { clock.start(); animate(); }
   });
 })();
 
-
 /* ──────────────────────────────────────────────
-   2. GRADE SYSTEM
-   ────────────────────────────────────────────── */
-// Map grade dropdown value → display label
-const GRADE_LABELS = {
-  '10': 'S / O', '9': 'A+', '8': 'A',
-  '7': 'B+', '6.5': 'B', '6': 'C+', '5': 'C',
-};
-// Map value → CSS pill class
-const GRADE_PILL = {
-  '10': 'gp-10', '9': 'gp-9', '8': 'gp-8',
-  '7': 'gp-7', '6.5': 'gp-65', '6': 'gp-6', '5': 'gp-5',
-};
-// CGPA → performance label
-function cgpaLabel(c) {
-  if (c >= 9.5) return '🏆 Outstanding';
-  if (c >= 9.0) return '⭐ Excellent';
-  if (c >= 8.5) return '✦ Distinction';
-  if (c >= 8.0) return '↑ First Class';
-  if (c >= 7.0) return '◆ Second Class';
-  if (c >= 6.0) return '◇ Pass Class';
-  return '⚠ Below Average';
-}
-function cgpaColor(c) {
-  if (c >= 9.0) return 'var(--green-lt)';
-  if (c >= 8.0) return 'var(--blue-lt)';
-  if (c >= 7.0) return '#9070e0';
-  if (c >= 6.0) return '#c89040';
-  return '#c06060';
-}
-
-
-/* ──────────────────────────────────────────────
-   3. APP STATE
-   ────────────────────────────────────────────── */
-const state = { courses: [], nextId: 1, studentName: '' };
-
-
-/* ──────────────────────────────────────────────
-   4. DOM REFS
+   2. DOM ELEMENT SELECTORS
    ────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
+
 const els = {
-  studentInput:  $('student-name'),
-  subjectInput:  $('subject-name'),
-  gradeSelect:   $('grade-select'),
-  creditInput:   $('credit-input'),
-  btnAdd:        $('btn-add-course'),
-  btnSubmit:     $('btn-submit'),
-  btnClear:      $('btn-clear'),
-  btnDownload:   $('btn-download'),
-  tbody:         $('course-tbody'),
-  emptyState:    $('empty-state'),
-  tableWrap:     $('table-wrap'),
-  courseBadge:   $('course-count-badge'),
-  tfootCredits:  $('tfoot-credits'),
-  // Results
-  resultsPanel:  $('results-panel'),
-  resCourses:    $('res-courses'),
-  resCredits:    $('res-credits'),
-  resCgpa:       $('res-cgpa'),
-  resCgpaTag:    $('res-cgpa-tag'),
-  ringFill:      $('ring-progress'),
-  // Toast
-  toast:         $('toast'),
-  // Theme
-  themeToggle:   $('theme-toggle'),
-  themeIcon:     $('theme-icon'),
-  // Modal
-  contactModal:  $('contact-modal'),
-  btnCreator:    $('btn-creator'),
-  modalClose:    $('modal-close'),
+  themeToggle: $('theme-toggle'),
+  themeIcon: $('theme-icon'),
+  
+  studentInput: $('student-name'),
+  subjectInput: $('subject-name'),
+  gradeSelect: $('grade-select'),
+  creditInput: $('course-credit'),
+  
+  btnAdd: $('btn-add'),
+  btnSubmit: $('btn-submit'),
+  btnClear: $('btn-clear'),
+  btnDownload: $('btn-download'),
+  
+  tableBody: $('table-body'),
+  emptyRow: $('empty-row-msg'),
+  
+  resCgpa: $('res-cgpa'),
+  resCgpaTag: $('res-cgpa-tag'),
+  resCredits: $('res-credits'),
+  resCourses: $('res-courses'),
+  ringProgress: $('ring-progress'),
+  downloadSec: $('download-section'),
+  
+  openCreator: $('open-creator-modal'),
+  closeCreator: $('close-creator-modal'),
+  creatorModal: $('creator-modal'),
+  toastContainer: $('toast-container'),
+
+  // Option 2 Selectors
+  sgpaSem1: $('sgpa-sem1'),
+  sgpaSem2: $('sgpa-sem2'),
+  btnCalcSgpaCgpa: $('btn-calc-sgpa-cgpa'),
+  btnClearSgpaCgpa: $('btn-clear-sgpa-cgpa'),
+  resSgpaCgpaVal: $('res-sgpa-cgpa-val'),
+  resSgpaCgpaTag: $('res-sgpa-cgpa-tag'),
+  ringProgressSgpaCgpa: $('ring-progress-sgpa-cgpa'),
+
+  // Option 3 Selectors
+  cgpaPctInput: $('cgpa-pct-input'),
+  btnCalcCgpaPct: $('btn-calc-cgpa-pct'),
+  btnClearCgpaPct: $('btn-clear-cgpa-pct'),
+  resCgpaPctVal: $('res-cgpa-pct-val'),
+  resCgpaPctTag: $('res-cgpa-pct-tag'),
+  ringProgressCgpaPct: $('ring-progress-cgpa-pct')
 };
 
+/* ──────────────────────────────────────────────
+   3. APP STATE STATEFUL LAYER
+   ────────────────────────────────────────────── */
+let courses = [];
 
 /* ──────────────────────────────────────────────
-   5. THEME TOGGLE
+   4. NAVIGATION SECTION ROUTER ENGINE
    ────────────────────────────────────────────── */
-let currentTheme = localStorage.getItem('kpriet-theme') || 'light';
+function showView(viewId) {
+  const sections = document.querySelectorAll('.view-section');
+  sections.forEach(sec => sec.classList.remove('active-view'));
 
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  els.themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-  localStorage.setItem('kpriet-theme', theme);
-  currentTheme = theme;
-}
-
-applyTheme(currentTheme); // load saved preference
-
-els.themeToggle.addEventListener('click', () => {
-  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-});
-
-
-/* ──────────────────────────────────────────────
-   6. CONTACT MODAL
-   ────────────────────────────────────────────── */
-els.btnCreator.addEventListener('click', () => {
-  els.contactModal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-});
-function closeModal() {
-  els.contactModal.classList.remove('open');
-  document.body.style.overflow = '';
-}
-els.modalClose.addEventListener('click', closeModal);
-els.contactModal.addEventListener('click', e => {
-  if (e.target === els.contactModal) closeModal();
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-});
-
-
-/* ──────────────────────────────────────────────
-   7. VALIDATION
-   ────────────────────────────────────────────── */
-function clearErrors() {
-  ['fg-student','fg-subject','fg-grade','fg-credit'].forEach(id => {
-    const el = $(id);
-    if (el) el.classList.remove('has-error');
-  });
-  [els.studentInput, els.subjectInput, els.gradeSelect, els.creditInput].forEach(el => {
-    if (el) el.classList.remove('error');
-  });
-}
-
-function setError(groupId, inputEl) {
-  const grp = $(groupId);
-  if (grp) grp.classList.add('has-error');
-  if (inputEl) {
-    inputEl.classList.add('error');
-    // force reflow so shake animation re-triggers
-    void inputEl.offsetWidth;
+  const targetSec = $('view-' + viewId);
+  if (targetSec) {
+    targetSec.classList.add('active-view');
   }
-}
 
-// Validates only the course fields (subject, grade, credit)
-function validateCourse() {
-  let ok = true;
-  clearErrors();
-
-  if (!els.subjectInput.value.trim()) { setError('fg-subject', els.subjectInput); ok = false; }
-  if (!els.gradeSelect.value)          { setError('fg-grade',   els.gradeSelect);  ok = false; }
-
-  const cr = els.creditInput.value.trim();
-  const crNum = Number(cr);
-  if (!cr || isNaN(crNum) || crNum < 1 || crNum > 10 || !Number.isInteger(crNum)) {
-    setError('fg-credit', els.creditInput);
-    ok = false;
+  // Update headers context subtext dynamically for specific visual continuity
+  const mainTitle = $('app-main-title');
+  const subTitle = $('app-subtitle');
+  if (viewId === 'landing') {
+    mainTitle.textContent = "CGPA Calculator";
+    subTitle.textContent = "An advanced, interactive 3D grade management system tailored for KPRIET students.";
+  } else if (viewId === 'sgpa') {
+    mainTitle.textContent = "SGPA Calculator";
+    subTitle.textContent = "Enter your semester structural details course by course to generate performance analytics.";
+  } else if (viewId === 'sgpa-cgpa') {
+    mainTitle.textContent = "SGPA to CGPA Converter";
+    subTitle.textContent = "Average out separate modular terms into a cumulative aggregated performance metric.";
+  } else if (viewId === 'cgpa-pct') {
+    mainTitle.textContent = "CGPA to Percentage";
+    subTitle.textContent = "Transform cumulative indices to universal linear percentage values accurately.";
   }
-  return ok;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// Attach Event Listeners to Landing Menu Option items
+$('card-to-sgpa').addEventListener('click', () => showView('sgpa'));
+$('card-to-sgpa-cgpa').addEventListener('click', () => showView('sgpa-cgpa'));
+$('card-to-cgpa-pct').addEventListener('click', () => showView('cgpa-pct'));
 
 /* ──────────────────────────────────────────────
-   8. ADD COURSE
+   5. THEME MANAGEMENT SYSTEM (PERSISTENT)
+   ────────────────────────────────────────────── */
+function initTheme() {
+  const savedTheme = localStorage.getItem('kpriet-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('kpriet-theme', next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  if (!els.themeIcon) return;
+  els.themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+}
+
+els.themeToggle.addEventListener('click', toggleTheme);
+document.addEventListener('DOMContentLoaded', initTheme);
+
+/* ──────────────────────────────────────────────
+   6. TOAST NOTIFICATIONS CORE LOGIC
+   ────────────────────────────────────────────── */
+function showToast(message, type = 'success') {
+  if (!els.toastContainer) return;
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
+  els.toastContainer.appendChild(toast);
+  
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+/* ──────────────────────────────────────────────
+   7. CREATOR INFO OVERLAY MODAL TOGGLERS
+   ────────────────────────────────────────────── */
+if (els.openCreator && els.creatorModal && els.closeCreator) {
+  els.openCreator.addEventListener('click', () => els.creatorModal.classList.add('active'));
+  els.closeCreator.addEventListener('click', () => els.creatorModal.classList.remove('active'));
+  els.creatorModal.addEventListener('click', (e) => {
+    if (e.target === els.creatorModal) els.creatorModal.classList.remove('active');
+  });
+}
+
+/* ──────────────────────────────────────────────
+   8. ADD COURSE HANDLER & VALIDATOR
    ────────────────────────────────────────────── */
 function addCourse() {
-  if (!validateCourse()) {
-    toast('Please fix the highlighted fields', 'error');
+  const student = els.studentInput.value.trim();
+  const subject = els.subjectInput.value.trim();
+  const gradeVal = els.gradeSelect.value;
+  const creditVal = els.creditInput.value.trim();
+  
+  let valid = true;
+  
+  if (!student) {
+    $('fg-student').classList.add('has-error');
+    els.studentInput.classList.add('error');
+    valid = false;
+  }
+  if (!subject) {
+    $('fg-subject').classList.add('has-error');
+    els.subjectInput.classList.add('error');
+    valid = false;
+  }
+  if (!gradeVal) {
+    $('fg-grade').classList.add('has-error');
+    els.gradeSelect.classList.add('error');
+    valid = false;
+  }
+  if (!creditVal || isNaN(creditVal) || parseInt(creditVal) <= 0) {
+    $('fg-credit').classList.add('has-error');
+    els.creditInput.classList.add('error');
+    valid = false;
+  }
+  
+  if (!valid) {
+    showToast('Please correct the highlighted errors.', 'error');
     return;
   }
-
-  const name  = els.subjectInput.value.trim();
-  const grVal = parseFloat(els.gradeSelect.value);
-  const grLbl = GRADE_LABELS[String(grVal)] || String(grVal);
-  const cr    = parseInt(els.creditInput.value, 10);
-
-  const course = { id: state.nextId++, name, grade: grVal, gradeLabel: grLbl, credit: cr };
-  state.courses.push(course);
-
-  appendRow(course);
-  updateBadge();
-  updateTfoot();
-
-  // Reset only course fields; keep student name
+  
+  const gradeTextMap = {
+    "10": "O", "9": "A+", "8": "A", "7": "B+", "6": "B", "5": "C"
+  };
+  
+  const course = {
+    id: Date.now() + Math.random().toString(36).substr(2, 5),
+    student: student,
+    subject: subject,
+    grade: parseInt(gradeVal),
+    gradeText: gradeTextMap[gradeVal] || 'C',
+    credits: parseInt(creditVal)
+  };
+  
+  courses.push(course);
+  renderCourseRow(course);
+  updatePreCalculationsCount();
+  
   els.subjectInput.value = '';
-  els.gradeSelect.value  = '';
-  els.creditInput.value  = '';
-  clearErrors();
+  els.gradeSelect.selectedIndex = 0;
+  els.creditInput.value = '';
   els.subjectInput.focus();
-
-  // Hide results panel (need to re-submit)
-  els.resultsPanel.style.display = 'none';
-
-  showCtrlBtns(true);
-  toast(`"${name}" added`, 'success');
+  
+  showToast(`Course "${subject}" added successfully.`);
 }
-
 
 /* ──────────────────────────────────────────────
-   9. RENDER TABLE ROW
+   9. DYNAMIC ROW TRANSITION ENGINE
    ────────────────────────────────────────────── */
-function appendRow(course) {
-  els.emptyState.style.display = 'none';
-  els.tableWrap.style.display  = 'block';
-
-  const idx  = state.courses.length;
-  const pill = GRADE_PILL[String(course.grade)] || 'gp-5';
-
+function renderCourseRow(course) {
+  if (els.emptyRow) els.emptyRow.style.display = 'none';
+  
   const tr = document.createElement('tr');
-  tr.dataset.id = course.id;
-  tr.style.animationDelay = '0ms';
+  tr.id = `row-${course.id}`;
+  tr.className = 'row-anim';
+  
   tr.innerHTML = `
-    <td class="row-num">${String(idx).padStart(2,'0')}</td>
-    <td>${escHtml(course.name)}</td>
-    <td><span class="grade-pill ${pill}">${escHtml(course.gradeLabel)}</span></td>
-    <td>${course.credit}</td>
-    <td><button class="btn-delete" data-id="${course.id}" title="Remove">&#10005;</button></td>
+    <td style="word-break: break-word; font-weight:500; color:var(--text-normal);">${escapeHtml(course.subject)}</td>
+    <td style="text-align:center;"><span class="grade-pill">${course.gradeText}</span></td>
+    <td style="text-align:center; font-weight:600; color:var(--text-normal);">${course.credits}</td>
+    <td style="text-align:center;">
+      <button class="btn-delete" title="Delete Course" data-id="${course.id}">&#128465;</button>
+    </td>
   `;
-  tr.querySelector('.btn-delete').addEventListener('click', () => deleteRow(course.id, tr));
-  els.tbody.appendChild(tr);
-}
-
-function deleteRow(id, trEl) {
-  trEl.style.transition = 'opacity 0.22s, transform 0.22s';
-  trEl.style.opacity    = '0';
-  trEl.style.transform  = 'translateX(24px)';
-  setTimeout(() => {
-    trEl.remove();
-    state.courses = state.courses.filter(c => c.id !== id);
-    renumberRows();
-    updateBadge();
-    updateTfoot();
-    els.resultsPanel.style.display = 'none';
-    if (state.courses.length === 0) {
-      els.emptyState.style.display = '';
-      els.tableWrap.style.display  = 'none';
-      showCtrlBtns(false);
-    }
-    toast('Course removed', 'info');
-  }, 230);
-}
-
-function renumberRows() {
-  els.tbody.querySelectorAll('tr').forEach((tr, i) => {
-    const cell = tr.querySelector('.row-num');
-    if (cell) cell.textContent = String(i + 1).padStart(2, '0');
+  
+  els.tableBody.appendChild(tr);
+  
+  tr.querySelector('.btn-delete').addEventListener('click', function() {
+    deleteCourse(this.getAttribute('data-id'));
   });
 }
 
-function updateBadge() {
-  const n = state.courses.length;
-  els.courseBadge.textContent = `${n} course${n !== 1 ? 's' : ''}`;
+function deleteCourse(id) {
+  courses = courses.filter(c => c.id !== id);
+  const row = $(`row-${id}`);
+  if (row) {
+    row.style.opacity = '0';
+    row.style.transform = 'translateX(30px)';
+    setTimeout(() => {
+      row.remove();
+      if (courses.length === 0 && els.emptyRow) {
+        els.emptyRow.style.display = 'table-row';
+      }
+    }, 300);
+  }
+  updatePreCalculationsCount();
+  resetCgpaDisplay();
+  showToast('Course removed from list.', 'info');
 }
 
-function updateTfoot() {
-  const total = state.courses.reduce((s, c) => s + c.credit, 0);
-  els.tfootCredits.textContent = state.courses.length ? total : '—';
+function updatePreCalculationsCount() {
+  if (els.resCourses) els.resCourses.textContent = courses.length;
+  const totCreds = courses.reduce((sum, c) => sum + c.credits, 0);
+  if (els.resCredits) els.resCredits.textContent = totCreds;
 }
 
-function showCtrlBtns(show) {
-  els.btnClear.style.display    = show ? 'inline-flex' : 'none';
-  els.btnDownload.style.display = show ? 'inline-flex' : 'none';
+function resetCgpaDisplay() {
+  if (els.resCgpa) els.resCgpa.innerHTML = '&#8212;';
+  if (els.resCgpaTag) els.resCgpaTag.textContent = 'Submit to calculate';
+  if (els.ringProgress) els.ringProgress.style.strokeDashoffset = '314.16';
+  if (els.downloadSec) els.downloadSec.style.display = 'none';
 }
-
 
 /* ──────────────────────────────────────────────
-   10. CALCULATE CGPA  (only on Submit click)
+   10. CORE MATHEMATICAL CGPA CALCULATION FORMULA
    ────────────────────────────────────────────── */
 function calculateAndShow() {
-  if (state.courses.length === 0) {
-    toast('Add at least one course first', 'error');
+  if (courses.length === 0) {
+    showToast('Add at least one course before calculation.', 'error');
+    return;
+  }
+  
+  let totalPoints = 0;
+  let totalCredits = 0;
+  
+  courses.forEach(c => {
+    totalPoints += (c.grade * c.credits);
+    totalCredits += c.credits;
+  });
+  
+  const cgpa = totalPoints / totalCredits;
+  const cgpaFixed = cgpa.toFixed(2);
+  
+  animateCgpaDial(parseFloat(cgpaFixed), els.resCgpa, els.ringProgress, els.resCgpaTag, 10);
+  
+  if (els.downloadSec) els.downloadSec.style.display = 'block';
+  showToast('CGPA calculated successfully!', 'success');
+}
+
+function animateCgpaDial(targetVal, valueEl, ringEl, tagEl, maxScale) {
+  let curr = 0;
+  const duration = 750;
+  const stepTime = 15;
+  const steps = duration / stepTime;
+  const increment = targetVal / steps;
+  
+  const timer = setInterval(() => {
+    curr += increment;
+    if (curr >= targetVal) {
+      curr = targetVal;
+      clearInterval(timer);
+    }
+    
+    if (valueEl) valueEl.textContent = curr.toFixed(2);
+    if (maxScale === 100 && valueEl) valueEl.textContent = curr.toFixed(2) + '%';
+    
+    const percentageOfMax = curr / maxScale;
+    const offset = 314.16 - (314.16 * percentageOfMax);
+    if (ringEl) ringEl.style.strokeDashoffset = offset;
+  }, stepTime);
+} 
+  
+
+
+function clearAll() {
+  courses = [];
+  els.tableBody.innerHTML = '';
+  if (els.emptyRow) els.tableBody.appendChild(els.emptyRow);
+  if (els.emptyRow) els.emptyRow.style.display = 'table-row';
+  
+  els.studentInput.value = '';
+  els.subjectInput.value = '';
+  els.gradeSelect.selectedIndex = 0;
+  els.creditInput.value = '';
+  
+  ['fg-student', 'fg-subject', 'fg-grade', 'fg-credit'].forEach(id => {
+    $(id).classList.remove('has-error');
+  });
+  [els.studentInput, els.subjectInput, els.gradeSelect, els.creditInput].forEach(el => {
+    el.classList.remove('error');
+  });
+  
+  updatePreCalculationsCount();
+  resetCgpaDisplay();
+  showToast('All fields and logs cleared.', 'info');
+}
+
+/* ──────────────────────────────────────────────
+   11. NEW CONVERTER LOGIC SCRIPT (INPUT REGEX FILTER)
+   ────────────────────────────────────────────── */
+function filterDecimalInput(el) {
+  let val = el.value;
+  // Strip all non-numeric and non-decimal characters
+  val = val.replace(/[^0-9.]/g, '');
+  // Disallow multiple trailing decimals
+  const splitVal = val.split('.');
+  if (splitVal.length > 2) {
+    val = splitVal[0] + '.' + splitVal.slice(1).join('');
+  }
+  el.value = val;
+}
+
+[els.sgpaSem1, els.sgpaSem2, els.cgpaPctInput].forEach(el => {
+  if (el) {
+    el.addEventListener('input', (e) => {
+      filterDecimalInput(e.target);
+      // Clean parent validation handles
+      const pGroup = e.target.closest('.form-group');
+      if (pGroup) pGroup.classList.remove('has-error');
+      e.target.classList.remove('error');
+    });
+  }
+});
+
+/* ──────────────────────────────────────────────
+   12. OPTION 2: SGPA TO CGPA CALCULATION LAYER
+   ────────────────────────────────────────────── */
+function processSgpaToCgpa() {
+  const raw1 = els.sgpaSem1.value.trim();
+  const raw2 = els.sgpaSem2.value.trim();
+  
+  let isValid = true;
+  const val1 = parseFloat(raw1);
+  const val2 = parseFloat(raw2);
+
+  if (!raw1 || isNaN(val1) || val1 < 0 || val1 > 10) {
+    $('fg-sgpa1').classList.add('has-error');
+    els.sgpaSem1.classList.add('error');
+    isValid = false;
+  }
+  if (!raw2 || isNaN(val2) || val2 < 0 || val2 > 10) {
+    $('fg-sgpa2').classList.add('has-error');
+    els.sgpaSem2.classList.add('error');
+    isValid = false;
+  }
+
+  if (!isValid) {
+    showToast('Please insert logical decimal points between 0.00 and 10.00', 'error');
     return;
   }
 
-  // Save student name at submit time
-  state.studentName = els.studentInput.value.trim();
-
-  const totalCr  = state.courses.reduce((s, c) => s + c.credit, 0);
-  const totalGP  = state.courses.reduce((s, c) => s + c.grade * c.credit, 0);
-  const cgpa     = totalGP / totalCr;
-
-  // Show results panel with animation
-  els.resultsPanel.style.display = '';
-  // Force reflow so animation triggers freshly every time
-  void els.resultsPanel.offsetWidth;
-  els.resultsPanel.style.animation = 'none';
-  void els.resultsPanel.offsetWidth;
-  els.resultsPanel.style.animation = '';
-
-  // Animate counter for courses and credits
-  animCount(els.resCourses,  0, state.courses.length, 500);
-  animCount(els.resCredits,  0, totalCr,               600);
-
-  // CGPA display + ring
-  els.resCgpa.textContent    = cgpa.toFixed(2);
-  els.resCgpaTag.textContent = cgpaLabel(cgpa);
-  els.resCgpaTag.style.color = cgpaColor(cgpa);
-
-  // Ring: circumference = 2π × 50 ≈ 314.16
-  const CIRC = 314.16;
-  els.ringFill.style.strokeDashoffset = Math.max(0, CIRC - (cgpa / 10) * CIRC);
-
-  // Scroll results into view smoothly
-  setTimeout(() => {
-    els.resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 80);
-
-  toast(`CGPA calculated: ${cgpa.toFixed(2)}`, 'success');
+  const resultCgpa = (val1 + val2) / 2;
+  animateCgpaDial(resultCgpa, els.resSgpaCgpaVal, els.ringProgressSgpaCgpa, els.resSgpaCgpaTag, 10);
+  showToast('Aggregated CGPA index derived successfully!');
 }
 
-function animCount(el, from, to, dur) {
-  const start = performance.now();
-  (function step(now) {
-    const p = Math.min((now - start) / dur, 1);
-    const e = 1 - Math.pow(1 - p, 3); // cubic ease-out
-    el.textContent = Math.round(from + (to - from) * e);
-    if (p < 1) requestAnimationFrame(step);
-  })(performance.now());
+function clearSgpaToCgpa() {
+  els.sgpaSem1.value = '';
+  els.sgpaSem2.value = '';
+  $('fg-sgpa1').classList.remove('has-error');
+  els.sgpaSem1.classList.remove('error');
+  $('fg-sgpa2').classList.remove('has-error');
+  els.sgpaSem2.classList.remove('error');
+  
+  els.resSgpaCgpaVal.innerHTML = '&#8212;';
+  els.ringProgressSgpaCgpa.style.strokeDashoffset = '314.16';
+  els.resSgpaCgpaTag.textContent = 'Fill inputs and press Calculate';
+  showToast('Converter parameters cleared.', 'info');
 }
 
+if (els.btnCalcSgpaCgpa) els.btnCalcSgpaCgpa.addEventListener('click', processSgpaToCgpa);
+if (els.btnClearSgpaCgpa) els.btnClearSgpaCgpa.addEventListener('click', clearSgpaToCgpa);
 
 /* ──────────────────────────────────────────────
-   11. CLEAR ALL
+   13. OPTION 3: CGPA TO PERCENTAGE CONVERSION
    ────────────────────────────────────────────── */
-function clearAll() {
-  if (!state.courses.length) return;
-  if (!confirm('Clear all courses? This cannot be undone.')) return;
-  state.courses = [];
-  els.tbody.innerHTML = '';
-  els.emptyState.style.display  = '';
-  els.tableWrap.style.display   = 'none';
-  els.resultsPanel.style.display = 'none';
-  showCtrlBtns(false);
-  updateBadge();
-  els.tfootCredits.textContent  = '—';
-  toast('All courses cleared', 'info');
-}
+function processCgpaToPercentage() {
+  const rawPct = els.cgpaPctInput.value.trim();
+  let isValid = true;
+  const valPct = parseFloat(rawPct);
 
-
-/* ──────────────────────────────────────────────
-   12. PDF EXPORT — professional layout
-   Logo top-left | Title | Student name | Table
-   NO grade points column
-   ────────────────────────────────────────────── */
-function downloadPDF() {
-  if (!state.courses.length) { toast('No courses to export', 'error'); return; }
-
-  const { jsPDF } = window.jspdf;
-  if (!jsPDF) { toast('PDF library not available', 'error'); return; }
-
-  const doc   = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const PW    = doc.internal.pageSize.getWidth();
-  const PH    = doc.internal.pageSize.getHeight();
-  const ML    = 18; // left margin
-  const MR    = 18; // right margin
-  const CW    = PW - ML - MR;
-
-  /* ── Background ── */
-  doc.setFillColor(248, 253, 250);
-  doc.rect(0, 0, PW, PH, 'F');
-
-  /* ── Top colour bar ── */
-  doc.setFillColor(45, 139, 78);
-  doc.rect(0, 0, PW, 4, 'F');
-  doc.setFillColor(42, 95, 172);
-  doc.rect(0, 4, PW, 1.2, 'F');
-
-  /* ── Logo (top-left) ── */
-  // Embed logo from first <img> in modal
-  const logoEl = document.querySelector('.modal-logo-img');
-  if (logoEl) {
-    try {
-      // Create canvas to convert image
-      const cv = document.createElement('canvas');
-      cv.width = 80; cv.height = 80;
-      const ctx = cv.getContext('2d');
-      ctx.drawImage(logoEl, 0, 0, 80, 80);
-      const imgData = cv.toDataURL('image/png');
-      doc.addImage(imgData, 'PNG', ML, 10, 18, 18);
-    } catch(e) { /* skip if CORS blocks */ }
+  if (!rawPct || isNaN(valPct) || valPct < 0 || valPct > 10) {
+    $('fg-cgpa-pct').classList.add('has-error');
+    els.cgpaPctInput.classList.add('error');
+    isValid = false;
   }
 
-  /* ── Title block (right of logo) ── */
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(42, 95, 172);
-  doc.text('KPRIET-CGPA Calculator', ML + 22, 17);
+  if (!isValid) {
+    showToast('Please enter a valid base CGPA index from 0.00 to 10.00', 'error');
+    return;
+  }
 
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 130, 110);
-  doc.text('KPR Institute of Engineering and Technology', ML + 22, 23);
-
-  /* ── Divider ── */
-  doc.setDrawColor(45, 139, 78);
-  doc.setLineWidth(0.5);
-  doc.line(ML, 31, PW - MR, 31);
-
-  /* ── Student name ── */
-  const student = state.studentName || 'N/A';
-  const dateStr = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 30, 30);
-  doc.text('Student Name:', ML, 39);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(42, 95, 172);
-  doc.text(student, ML + 32, 39);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 30, 30);
-  doc.text('Date:', PW - MR - 42, 39);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text(dateStr, PW - MR - 28, 39);
-
-  /* ── Summary row ── */
-  const totalCr = state.courses.reduce((s,c) => s + c.credit, 0);
-  const totalGP = state.courses.reduce((s,c) => s + c.grade * c.credit, 0);
-  const cgpa    = totalGP / totalCr;
-
-  // Summary card background
-  doc.setFillColor(240, 252, 245);
-  doc.roundedRect(ML, 44, CW, 22, 3, 3, 'F');
-  doc.setDrawColor(45, 139, 78);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(ML, 44, CW, 22, 3, 3, 'S');
-
-  const statItems = [
-    ['Total Courses', String(state.courses.length)],
-    ['Total Credits', String(totalCr)],
-    ['Final CGPA',    cgpa.toFixed(2)],
-  ];
-  const colW = CW / 3;
-  statItems.forEach(([label, val], i) => {
-    const x = ML + colW * i + colW / 2;
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(i === 2 ? 45 : 42, i === 2 ? 139 : 95, i === 2 ? 78 : 172);
-    doc.text(val, x, 54, { align: 'center' });
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 130, 110);
-    doc.text(label.toUpperCase(), x, 61, { align: 'center' });
-  });
-
-  /* ── Table header label ── */
-  doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(45, 139, 78);
-  doc.text('COURSE DETAILS', ML, 74);
-
-  /* ── Course table (Subject | Grade | Credits — NO grade points) ── */
-  const tableBody = state.courses.map((c, i) => [
-    String(i + 1).padStart(2, '0'),
-    c.name,
-    c.gradeLabel,
-    String(c.credit),
-  ]);
-  // Totals row
-  tableBody.push(['', 'TOTAL', '', String(totalCr)]);
-
-  doc.autoTable({
-    startY: 77,
-    head: [['#', 'Subject Name', 'Grade', 'Credits']],
-    body: tableBody,
-    theme: 'plain',
-    margin: { left: ML, right: MR },
-    styles: {
-      font: 'helvetica',
-      fontSize: 9,
-      textColor: [30, 40, 35],
-      cellPadding: { top: 4, bottom: 4, left: 5, right: 5 },
-      fillColor: [255, 255, 255],
-      lineColor: [220, 240, 228],
-      lineWidth: 0.2,
-    },
-    headStyles: {
-      fillColor: [45, 139, 78],
-      textColor: [255, 255, 255],
-      fontSize: 8,
-      fontStyle: 'bold',
-      halign: 'left',
-    },
-    alternateRowStyles: {
-      fillColor: [245, 253, 248],
-    },
-    columnStyles: {
-      0: { cellWidth: 12, halign: 'center', textColor: [160, 180, 165], fontSize: 8 },
-      1: { cellWidth: 90 },
-      2: { cellWidth: 28, halign: 'center' },
-      3: { cellWidth: 28, halign: 'center', fontStyle: 'bold', textColor: [42, 95, 172] },
-    },
-    didParseCell(data) {
-      if (data.row.index === tableBody.length - 1) {
-        data.cell.styles.fillColor    = [235, 248, 240];
-        data.cell.styles.fontStyle    = 'bold';
-        data.cell.styles.textColor    = [30, 80, 50];
-        data.cell.styles.fontSize     = 9.5;
-      }
-    },
-    didDrawPage() {
-      // Footer on every page
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(160, 180, 165);
-      doc.text('KPRIET-CGPA Calculator  ·  KPR Institute of Engineering and Technology', PW/2, PH - 10, { align: 'center' });
-      // Bottom bar
-      doc.setFillColor(42, 95, 172);
-      doc.rect(0, PH - 3.5, PW, 1, 'F');
-      doc.setFillColor(45, 139, 78);
-      doc.rect(0, PH - 2.5, PW, 2.5, 'F');
-    },
-  });
-
-  const fname = `KPRIET_CGPA_${(student || 'Report').replace(/\s+/g,'_')}.pdf`;
-  doc.save(fname);
-  toast('PDF downloaded!', 'success');
+  const finalPercentage = (valPct / 10) * 100;
+  animateCgpaDial(finalPercentage, els.resCgpaPctVal, els.ringProgressCgpaPct, els.resCgpaPctTag, 100);
+  showToast('Linear percentage derived successfully!');
 }
 
+function clearCgpaToPercentage() {
+  els.cgpaPctInput.value = '';
+  $('fg-cgpa-pct').classList.remove('has-error');
+  els.cgpaPctInput.classList.remove('error');
+  
+  els.resCgpaPctVal.innerHTML = '&#8212;';
+  els.ringProgressCgpaPct.style.strokeDashoffset = '314.16';
+  els.resCgpaPctTag.textContent = 'Fill input and press Convert';
+  showToast('Conversion metric cleared.', 'info');
+}
+
+if (els.btnCalcCgpaPct) els.btnCalcCgpaPct.addEventListener('click', processCgpaToPercentage);
+if (els.btnClearCgpaPct) els.btnClearCgpaPct.addEventListener('click', clearCgpaToPercentage);
 
 /* ──────────────────────────────────────────────
-   13. TOAST
+   14. PDF GENERATOR CORE LAYER
    ────────────────────────────────────────────── */
-let toastTimer;
-function toast(msg, type = 'info') {
-  const el = els.toast;
-  clearTimeout(toastTimer);
-  el.textContent = msg;
-  el.className = `toast show ${type}`;
-  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2800);
-}
-
-
-/* ──────────────────────────────────────────────
-   14. UTILITY
-   ────────────────────────────────────────────── */
-function escHtml(str) {
-  return str
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-
-/* ──────────────────────────────────────────────
-   15. BUTTON RIPPLE HELPER
-   ────────────────────────────────────────────── */
-function attachRipple(btn) {
-  btn.addEventListener('click', function(e) {
-    const r   = this.querySelector('.btn-ripple-el');
-    if (!r) return;
-    const rc  = this.getBoundingClientRect();
-    r.style.left = (e.clientX - rc.left)  + 'px';
-    r.style.top  = (e.clientY - rc.top)   + 'px';
-    r.classList.remove('active');
-    void r.offsetWidth;
-    r.classList.add('active');
+function downloadPDF() {
+  if (courses.length === 0) {
+    showToast('Add at least one course to generate a report.', 'error');
+    return;
+  }
+  
+  const studentName = els.studentInput.value.trim() || 'KPRIET Student';
+  const finalCgpa = els.resCgpa.textContent || '0.00';
+  const totalCredits = els.resCredits.textContent || '0';
+  
+  let tableRowsHtml = '';
+  courses.forEach((c, idx) => {
+    tableRowsHtml += `
+      <tr style="background-color: ${idx % 2 === 0 ? '#fdfdfd' : '#f7f9f8'}; border-bottom: 1px solid #e2ebd5;">
+        <td style="padding: 10px 12px; font-size: 13px; color: #333;">${escapeHtml(c.subject)}</td>
+        <td style="padding: 10px 12px; font-size: 13px; color: #333; text-align: center; font-weight: bold;">${c.gradeText}</td>
+        <td style="padding: 10px 12px; font-size: 13px; color: #333; text-align: center;">${c.credits}</td>
+      </tr>
+    `;
   });
-}
-attachRipple(els.btnAdd);
-attachRipple(els.btnSubmit);
+  
+  const pdfContainer = document.createElement('div');
+  pdfContainer.style.position = 'fixed';
+  pdfContainer.style.top = '0';
+  pdfContainer.style.left = '0';
+  pdfContainer.style.width = '100vw';
+  pdfContainer.style.height = '100vh';
+  pdfContainer.style.overflow = 'hidden';
+  pdfContainer.style.zIndex = '-9999';
+  pdfContainer.style.opacity = '0.01';
 
+  const pdfTemplate = document.createElement('div');
+  pdfTemplate.style.width = '600px';
+  pdfTemplate.style.display = 'block';
+  pdfTemplate.style.background = '#ffffff';
+  pdfTemplate.style.padding = '20px';
+  pdfTemplate.style.boxSizing = 'border-box';
+  pdfTemplate.style.fontFamily = "'Helvetica Neue', Arial, sans-serif";
+  pdfTemplate.style.color = '#222';
+  pdfTemplate.style.margin = '10px auto';
+  
+  pdfTemplate.innerHTML = `
+    <div style="border: 2px solid #2d8b4e; padding: 15px; border-radius: 12px; position: relative; overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #2d8b4e; padding-bottom: 15px; margin-bottom: 15px;">
+        <div>
+          <h1 style="margin: 0; font-size: 24px; color: #2d8b4e; letter-spacing: 0.5px;">KPR Institute of Engineering and Technology</h1>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Official Academic Performance Report</p>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #777; line-height: 1.4;">
+          Date: ${new Date().toLocaleDateString()}<br/>
+          System: Autonomous
+        </div>
+      </div>
+      
+      <div style="background-color: #f3f9f5; border-left: 4px solid #2d8b4e; padding: 15px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 18%; font-size: 13px; color: #555; padding: 3px 0;">Student Name:</td>
+            <td style="width: 52%; font-size: 14px; font-weight: bold; color: #111; padding: 3px 0;">${escapeHtml(studentName)}</td>
+            <td style="width: 18%; font-size: 13px; color: #555; padding: 3px 0; text-align: right;">Total Credits:</td>
+            <td style="width: 12%; font-size: 14px; font-weight: bold; color: #111; padding: 3px 0; text-align: right;">${totalCredits}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <h3 style="color: #2d8b4e; font-size: 14px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-weight: 700;">Registered Courses Registry</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 35px;">
+        <thead>
+          <tr style="background-color: #2d8b4e; color: white;">
+            <th style="padding: 10px 12px; font-size: 13px; text-align: left; border-radius: 4px 0 0 4px;">Subject Course Description</th>
+            <th style="padding: 10px 12px; font-size: 13px; text-align: center; width: 100px;">Grade Code</th>
+            <th style="padding: 10px 12px; font-size: 13px; text-align: center; width: 100px; border-radius: 0 4px 4px 0;">Credits Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRowsHtml}
+        </tbody>
+      </table>
+      
+      <div style="display: flex; justify-content: center; margin-top: 20px;">
+        <div style="border: 2px dashed #2d8b4e; background-color: #fdfdfd; padding: 15px 20px; border-radius: 8px; text-align: center; min-width: 180px;box-sizing: border-box;">
+          <div style="font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 4px;">Cumulative Score Result</div>
+          <div style="font-size: 34px; font-weight: 800; color: #2d8b4e;">${finalCgpa} <span style="font-size:15px; font-weight:400; color:#555;">/ 10</span></div>
+          <div style="font-size: 11px; color: #2a5fac; font-weight: 600; margin-top: 4px;">KPRIET Grading Evaluation Matrix</div>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 10px; text-align: center; font-size: 11px; color: #888;">
+        This statement is computer generated from the user portal logs and serves as an academic evaluation reference utility.
+      </div>
+    </div>
+  `;
+  
+  pdfContainer.appendChild(pdfTemplate);
+  document.body.appendChild(pdfContainer);
+  
+  const opt = {
+    margin: 10,
+    filename: `KPRIET_CGPA_Report_${studentName.replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: 800,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  showToast('Generating document report...', 'info');
+  
+  setTimeout(() => {
+    html2pdf()
+      .set(opt)
+      .from(pdfTemplate)
+      .save()
+      .then(() => {
+        if (document.body.contains(pdfContainer)) {
+          document.body.removeChild(pdfContainer);
+        }
+        showToast('PDF Report downloaded successfully!', 'success');
+      })
+      .catch(err => {
+        console.error('PDF Generation Error:', err);
+        if (document.body.contains(pdfContainer)) {
+          document.body.removeChild(pdfContainer);
+        }
+        showToast('Could not compile PDF report.', 'error');
+      });
+  }, 100);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 
 /* ──────────────────────────────────────────────
-   16. EVENT LISTENERS
+   15. ACTION EVENT BINDINGS
    ────────────────────────────────────────────── */
 els.btnAdd.addEventListener('click', addCourse);
 els.btnSubmit.addEventListener('click', calculateAndShow);
 els.btnClear.addEventListener('click', clearAll);
 els.btnDownload.addEventListener('click', downloadPDF);
 
-// Enter key submits add-course from subject / credit inputs
 [els.subjectInput, els.creditInput].forEach(el => {
   el.addEventListener('keydown', e => { if (e.key === 'Enter') els.btnAdd.click(); });
 });
 
-// Clear error styling as user types / selects
 els.studentInput.addEventListener('input', () => {
   $('fg-student').classList.remove('has-error');
   els.studentInput.classList.remove('error');
@@ -736,16 +726,7 @@ els.gradeSelect.addEventListener('change', () => {
   els.gradeSelect.classList.remove('error');
 });
 els.creditInput.addEventListener('input', () => {
-  // Strip non-numeric characters
   els.creditInput.value = els.creditInput.value.replace(/[^0-9]/g, '');
   $('fg-credit').classList.remove('has-error');
   els.creditInput.classList.remove('error');
 });
-
-
-/* ──────────────────────────────────────────────
-   17. INIT
-   ────────────────────────────────────────────── */
-updateBadge();
-els.studentInput.focus();
-console.log('%cKPRIET-CGPA Calculator ready ✓', 'color:#2d8b4e;font-family:monospace;font-size:13px;');
