@@ -3,6 +3,11 @@
 A modern, futuristic 3D CGPA Calculator built using HTML, CSS, JavaScript, and Three.js.
 Designed with a clean UI, theme switching, and professional PDF report generation.
 
+
+🤝 REASON:
+
+👨‍🎓 Designed the application to support the latest KPRIET grading regulation, including the newly introduced C+ grade, addressing limitations found in many existing CGPA calculator websites🌐.
+
 ---
 
 ## 🚀 Live Demo
