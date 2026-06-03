@@ -20,6 +20,7 @@ https://mowshik1210.github.io/KPRIET-CGPA-calculator/
 
 ✨ Features
 
+- 🚥 SGPA calculator & SGPA to CGPA & CGPA to percentage
 - 🎨 Light & Dark Theme Toggle
 - 🧮 Accurate CGPA Calculation
 - 📚 Dynamic Course Management
@@ -33,11 +34,10 @@ https://mowshik1210.github.io/KPRIET-CGPA-calculator/
 
 ---
 
-🧮 CGPA Formula
-
-CGPA is calculated using:
-
-CGPA = Σ (Credit × Grade Point) / Σ (Credits)
+🧮 Multi operation Calculator
+1) SGPA calculator
+2) SGPA to CGPA converter
+3) CGPA to percentage converter
 
 ----
 
@@ -78,14 +78,15 @@ kpriet-cgpa-calculator/
 📄 PDF Report Includes
 
 
-- Project Title & Logo
+- College name & total credits
+- system autonomous OR non-autonomous
+- Report generated DATE
 - Student Name
 - Course Details:
   - Subject
   - Grade
   - Credit
 - Final CGPA
-- Total Credits
 
 ---
 ## 📸 Screenshots
@@ -110,6 +111,7 @@ Mowshik
 📧 Email: dharshanmowshik@gmail.com
 📱 Phone: +91 7695970676
 🌐 GitHub: https://github.com/Mowshik1210
+🧑‍🏫 Linkidin: www.linkedin.com/in/mowshik-g
 
 ---
 
@@ -150,3 +152,4 @@ KPRIET student first year cse(ai&ml) if you want contact: note the below details
 📧 Email: [[dharshanmowshik@gmail.com](mailto:dharshanmowshik@gmail.com)]
 📱 Phone: +91 7695970676 
 🌐 GitHub: github.com/Mowshik1210"
+🧑‍🏫 Linkidin: www.linkedin.com/in/mowshik-g
