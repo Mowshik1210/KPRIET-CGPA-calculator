@@ -13,8 +13,7 @@ Designed with a clean UI, theme switching, and professional PDF report generatio
 ## 🚀 Live Demo
 https://mowshik1210.github.io/KPRIET-CGPA-calculator/
 
-👉https://github.com/Mowshik1210
-(GitHub Pages)
+
 
 ---
 
