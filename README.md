@@ -91,15 +91,32 @@ kpriet-cgpa-calculator/
 ## 📸 Screenshots
 
 
-![Home](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(21).png?raw=true)
-![Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(23).png?raw=true)
-![Light Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(25).png?raw=true)
-![Course Registry](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(24).png?raw=true)
-![CGPA Results](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(26).png?raw=true)
-![Results in Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(27).png?raw=true)
-![3d Background](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(29).png?raw=true)
-![PDF](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(30).png?raw=true)
-![Creater Info](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(28).png?raw=true)
+![Dark Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(44).png?raw=true)
+
+
+
+![Light Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(45).png?raw=true)
+
+
+![Course Registry](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(49).png?raw=true)
+
+
+![CGPA Results](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(52).png?raw=true)
+
+
+![Results in Light Mode](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(53).png?raw=true)
+
+
+![3d Background](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(51).png?raw=true)
+
+
+
+![PDF](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%202026-06-03%20170107.png?raw=true)
+
+
+![Creater Info](https://github.com/Mowshik1210/KPRIET-CGPA-calculator/blob/main/Assets/Screenshot%20(50).png?raw=true)
+
+
 
 ----
 
