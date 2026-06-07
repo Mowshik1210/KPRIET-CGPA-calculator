@@ -1,5 +1,4 @@
-##🎓 KPRIET CGPA Calculator
-
+## 🎓 KPRIET CGPA Calculator
 A modern, futuristic 3D CGPA Calculator built using HTML, CSS, JavaScript, and Three.js.
 Designed with a clean UI, theme switching, and professional PDF report generation.
 
