@@ -259,6 +259,8 @@ function addCourse() {
   const subject = els.subjectInput.value.trim();
   const gradeVal = els.gradeSelect.value;
   const creditVal = els.creditInput.value.trim();
+  const gradeText   = els.gradeSelect.selectedOptions[0].text;  // Reads "B", "C+", "A+" etc. DIRECTLY
+  const gradePoints = parseFloat(gradeVal);                     // Gives 6.5, 6, 5 etc. for CGPA math
   
   let valid = true;
   
@@ -287,19 +289,15 @@ function addCourse() {
     showToast('Please correct the highlighted errors.', 'error');
     return;
   }
-  
-  const gradeTextMap = {
-    "10": "O", "9": "A+", "8": "A", "7": "B+", "6": "B", "5": "C"
-  };
-  
-  const course = {
-    id: Date.now() + Math.random().toString(36).substr(2, 5),
-    student: student,
-    subject: subject,
-    grade: parseInt(gradeVal),
-    gradeText: gradeTextMap[gradeVal] || 'C',
-    credits: parseInt(creditVal)
-  };
+
+const course = {
+  id: Date.now() + Math.random().toString(36).substr(2, 5),
+  student: student,
+  subject: subject,
+  grade: parseFloat(gradeVal),
+  gradeText: gradeText,
+  credits: parseInt(creditVal)
+};
   
   courses.push(course);
   renderCourseRow(course);
