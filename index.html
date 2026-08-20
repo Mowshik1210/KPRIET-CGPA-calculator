@@ -230,23 +230,19 @@
         <section class="panel input-panel">
           <h2 class="panel-title"><span class="icon">&#128221;</span> SGPA Cumulative Entry</h2>
           
-          <div class="form-group" id="fg-sgpa1">
-            <label for="sgpa-sem1">SGPA Semester 1 <span class="req">*</span></label>
+          <!-- ══ CHANGED: fixed Sem1/Sem2 inputs replaced with a "Number of Semesters" input.
+               Entering a number here dynamically generates that many SGPA fields below. ══ -->
+          <div class="form-group" id="fg-num-sem">
+            <label for="num-semesters">Number of Semesters <span class="req">*</span></label>
             <div class="input-wrapper">
-              <span class="input-icon">&#128200;</span>
-              <input type="text" id="sgpa-sem1" placeholder="Eg: 8.87" autocomplete="off"/>
+              <span class="input-icon">&#128209;</span>
+              <input type="text" id="num-semesters" placeholder="Eg: 4" autocomplete="off" inputmode="numeric"/>
             </div>
-            <div class="error-msg" id="err-sgpa1">Enter a valid decimal index between 0.00 and 10.00</div>
+            <div class="error-msg" id="err-num-sem">Enter a valid number of semesters between 1 and 10</div>
           </div>
 
-          <div class="form-group" id="fg-sgpa2">
-            <label for="sgpa-sem2">SGPA Semester 2 <span class="req">*</span></label>
-            <div class="input-wrapper">
-              <span class="input-icon">&#128200;</span>
-              <input type="text" id="sgpa-sem2" placeholder="Eg: 7.95" autocomplete="off"/>
-            </div>
-            <div class="error-msg" id="err-sgpa2">Enter a valid decimal index between 0.00 and 10.00</div>
-          </div>
+          <!-- ══ NEW: dynamic SGPA input fields are injected here by script.js ══ -->
+          <div id="sgpa-fields-container"></div>
 
           <div class="btn-row" style="margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
             <button class="btn btn-submit" id="btn-calc-sgpa-cgpa">

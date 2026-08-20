@@ -139,8 +139,10 @@ const els = {
   toastContainer: $('toast-container'),
 
   // Option 2 Selectors
-  sgpaSem1: $('sgpa-sem1'),
-  sgpaSem2: $('sgpa-sem2'),
+  // ══ CHANGED: fixed sgpaSem1/sgpaSem2 refs replaced with the semester-count
+  // input and the container that holds the dynamically generated SGPA fields.
+  numSemesters: $('num-semesters'),
+  sgpaFieldsContainer: $('sgpa-fields-container'),
   btnCalcSgpaCgpa: $('btn-calc-sgpa-cgpa'),
   btnClearSgpaCgpa: $('btn-clear-sgpa-cgpa'),
   resSgpaCgpaVal: $('res-sgpa-cgpa-val'),
@@ -457,7 +459,7 @@ function filterDecimalInput(el) {
   el.value = val;
 }
 
-[els.sgpaSem1, els.sgpaSem2, els.cgpaPctInput].forEach(el => {
+[els.cgpaPctInput].forEach(el => {
   if (el) {
     el.addEventListener('input', (e) => {
       filterDecimalInput(e.target);
@@ -470,45 +472,114 @@ function filterDecimalInput(el) {
 });
 
 /* ──────────────────────────────────────────────
+   NEW: DYNAMIC SEMESTER FIELD GENERATOR
+   Reads "Number of Semesters" and builds that many
+   SGPA input fields inside #sgpa-fields-container.
+   ────────────────────────────────────────────── */
+function generateSemesterFields(count) {
+  els.sgpaFieldsContainer.innerHTML = '';
+
+  for (let i = 1; i <= count; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'form-group sgpa-dyn-field';
+    wrap.id = `fg-sgpa-${i}`;
+
+    wrap.innerHTML = `
+      <label for="sgpa-sem-${i}">SGPA Semester ${i} <span class="req">*</span></label>
+      <div class="input-wrapper">
+        <span class="input-icon">&#128200;</span>
+        <input type="text" id="sgpa-sem-${i}" placeholder="Eg: 8.50" autocomplete="off"/>
+      </div>
+      <div class="error-msg" id="err-sgpa-${i}">Enter a valid decimal index between 0.00 and 10.00</div>
+    `;
+
+    els.sgpaFieldsContainer.appendChild(wrap);
+
+    // Attach the same decimal-filter + error-clear behaviour as before
+    const inputEl = wrap.querySelector('input');
+    inputEl.addEventListener('input', (e) => {
+      filterDecimalInput(e.target);
+      wrap.classList.remove('has-error');
+      e.target.classList.remove('error');
+    });
+  }
+}
+
+// Rebuild the semester fields whenever the count changes
+if (els.numSemesters) {
+  els.numSemesters.addEventListener('input', () => {
+    const raw = els.numSemesters.value.trim();
+    const n = parseInt(raw, 10);
+
+    $('fg-num-sem').classList.remove('has-error');
+    els.numSemesters.classList.remove('error');
+
+    if (raw && !isNaN(n) && n >= 1 && n <= 10) {
+      generateSemesterFields(n);
+    } else {
+      // Invalid or empty count — clear any previously generated fields
+      els.sgpaFieldsContainer.innerHTML = '';
+    }
+  });
+}
+
+/* ──────────────────────────────────────────────
    12. OPTION 2: SGPA TO CGPA CALCULATION LAYER
    ────────────────────────────────────────────── */
+// ══ CHANGED: now reads N dynamically-generated SGPA fields instead of two fixed ones ══
 function processSgpaToCgpa() {
-  const raw1 = els.sgpaSem1.value.trim();
-  const raw2 = els.sgpaSem2.value.trim();
-  
-  let isValid = true;
-  const val1 = parseFloat(raw1);
-  const val2 = parseFloat(raw2);
+  const raw = els.numSemesters.value.trim();
+  const n = parseInt(raw, 10);
 
-  if (!raw1 || isNaN(val1) || val1 < 0 || val1 > 10) {
-    $('fg-sgpa1').classList.add('has-error');
-    els.sgpaSem1.classList.add('error');
-    isValid = false;
+  // Validate the semester-count field first
+  if (!raw || isNaN(n) || n < 1 || n > 10) {
+    $('fg-num-sem').classList.add('has-error');
+    els.numSemesters.classList.add('error');
+    showToast('Enter a valid number of semesters between 1 and 10', 'error');
+    return;
   }
-  if (!raw2 || isNaN(val2) || val2 < 0 || val2 > 10) {
-    $('fg-sgpa2').classList.add('has-error');
-    els.sgpaSem2.classList.add('error');
-    isValid = false;
+
+  // Make sure the fields actually exist (covers paste/autofill edge cases)
+  if (els.sgpaFieldsContainer.children.length !== n) {
+    generateSemesterFields(n);
   }
+
+  const sgpaInputs = els.sgpaFieldsContainer.querySelectorAll('input');
+  let isValid = true;
+  let total = 0;
+
+  sgpaInputs.forEach((inputEl, idx) => {
+    const raw = inputEl.value.trim();
+    const val = parseFloat(raw);
+    const fg  = $(`fg-sgpa-${idx + 1}`);
+
+    if (!raw || isNaN(val) || val < 0 || val > 10) {
+      if (fg) fg.classList.add('has-error');
+      inputEl.classList.add('error');
+      isValid = false;
+    } else {
+      total += val;
+    }
+  });
 
   if (!isValid) {
     showToast('Please insert logical decimal points between 0.00 and 10.00', 'error');
     return;
   }
 
-  const resultCgpa = (val1 + val2) / 2;
+  const resultCgpa = total / n;
   animateCgpaDial(resultCgpa, els.resSgpaCgpaVal, els.ringProgressSgpaCgpa, els.resSgpaCgpaTag, 10);
   showToast('Aggregated CGPA index derived successfully!');
 }
 
+// ══ CHANGED: clears the semester-count field and removes all dynamic SGPA fields ══
 function clearSgpaToCgpa() {
-  els.sgpaSem1.value = '';
-  els.sgpaSem2.value = '';
-  $('fg-sgpa1').classList.remove('has-error');
-  els.sgpaSem1.classList.remove('error');
-  $('fg-sgpa2').classList.remove('has-error');
-  els.sgpaSem2.classList.remove('error');
-  
+  els.numSemesters.value = '';
+  $('fg-num-sem').classList.remove('has-error');
+  els.numSemesters.classList.remove('error');
+
+  els.sgpaFieldsContainer.innerHTML = '';
+
   els.resSgpaCgpaVal.innerHTML = '&#8212;';
   els.ringProgressSgpaCgpa.style.strokeDashoffset = '314.16';
   els.resSgpaCgpaTag.textContent = 'Fill inputs and press Calculate';
